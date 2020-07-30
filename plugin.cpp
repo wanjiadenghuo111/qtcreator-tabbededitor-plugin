@@ -12,6 +12,8 @@
 #include <QFile>
 #include <QMainWindow>
 
+#include <plog/Log.h>
+
 using namespace TabbedEditor::Internal;
 
 TabbedEditorPlugin::TabbedEditorPlugin() :
@@ -20,21 +22,25 @@ TabbedEditorPlugin::TabbedEditorPlugin() :
 {
 }
 
-bool TabbedEditorPlugin::initialize(const QStringList &arguments, QString *errorString)
+bool TabbedEditorPlugin::initialize(const QStringList& arguments, QString* errorString)
 {
     Q_UNUSED(arguments)
     Q_UNUSED(errorString)
 
+    //./qtcreator & tail -F ./TabbedEditor.log
+    plog::init(plog::debug, "TabbedEditor.log");
+    PLOGD << "\n\n--------------------------------Hello TabbedEditor log!--------------------"; // short macro
+
     connect(Core::ICore::instance(), SIGNAL(themeChanged()), this, SLOT(updateStyleToBaseColor()));
     connect(Core::EditorManager::instance(), SIGNAL(editorOpened(Core::IEditor*)), SLOT(showTabBar()));
 
-    QMainWindow *mainWindow = qobject_cast<QMainWindow *>(Core::ICore::mainWindow());
+    QMainWindow* mainWindow = qobject_cast<QMainWindow*>(Core::ICore::mainWindow());
     mainWindow->layout()->setSpacing(0);
 
-    QWidget *wrapper = new QWidget(mainWindow);
+    QWidget* wrapper = new QWidget(mainWindow);
     wrapper->setMinimumHeight(0);
 
-    QVBoxLayout *layout = new QVBoxLayout();
+    QVBoxLayout* layout = new QVBoxLayout();
     layout->setSpacing(0);
     layout->setContentsMargins(0, 0, 0, 0);
 
@@ -49,17 +55,25 @@ bool TabbedEditorPlugin::initialize(const QStringList &arguments, QString *error
     return true;
 }
 
-QString TabbedEditorPlugin::getStylesheetPatternFromFile(const QString &filepath)
+bool TabbedEditorPlugin::delayedInitialize()
+{
+    //    m_tabBar->setCurrentIndex(0);
+    return false;
+}
+
+QString TabbedEditorPlugin::getStylesheetPatternFromFile(const QString& filepath)
 {
     QFile stylesheetFile(filepath);
     if (!stylesheetFile.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
         return QString();
+    }
     return QString::fromUtf8(stylesheetFile.readAll());
 }
 
 void TabbedEditorPlugin::updateStyleToBaseColor()
 {
-    Utils::Theme *theme = Utils::creatorTheme();
+    Utils::Theme* theme = Utils::creatorTheme();
 
     QString baseColorQss;
     QString borderColorQss;
@@ -67,20 +81,23 @@ void TabbedEditorPlugin::updateStyleToBaseColor()
     QString selectedTabBorderColorQss;
     QString shadowColorQss;
 
-    if(theme->preferredStyles().isEmpty()) {
+    if(theme->preferredStyles().isEmpty())
+    {
         baseColorQss = getQssStringFromColor(Utils::StyleHelper::baseColor().lighter(130));
         borderColorQss = getQssStringFromColor(Utils::StyleHelper::borderColor());
         highlightColorQss = getQssStringFromColor(Utils::StyleHelper::baseColor());
         selectedTabBorderColorQss
-                = getQssStringFromColor(Utils::StyleHelper::highlightColor().lighter());
+            = getQssStringFromColor(Utils::StyleHelper::highlightColor().lighter());
         shadowColorQss = getQssStringFromColor(Utils::StyleHelper::shadowColor());
-    } else { // Flat widget style
+    }
+    else     // Flat widget style
+    {
         baseColorQss
-                = getQssStringFromColor(theme->color(Utils::Theme::BackgroundColorHover));
+            = getQssStringFromColor(theme->color(Utils::Theme::BackgroundColorHover));
         borderColorQss = getQssStringFromColor(theme->color(Utils::Theme::BackgroundColorHover));
         highlightColorQss = getQssStringFromColor(theme->color(Utils::Theme::BackgroundColorDark));
         selectedTabBorderColorQss
-                = getQssStringFromColor(theme->color(Utils::Theme::BackgroundColorDark));
+            = getQssStringFromColor(theme->color(Utils::Theme::BackgroundColorDark));
         shadowColorQss = getQssStringFromColor(theme->color(Utils::Theme::BackgroundColorNormal));
     }
 
@@ -103,7 +120,8 @@ void TabbedEditorPlugin::showTabBar()
 {
     updateStyleToBaseColor();
 
-    if (m_styleUpdatedToBaseColor) {
+    if (m_styleUpdatedToBaseColor)
+    {
         disconnect(Core::EditorManager::instance(), SIGNAL(editorOpened(Core::IEditor*)),
                    this, SLOT(showTabBar()));
         return;
@@ -112,11 +130,11 @@ void TabbedEditorPlugin::showTabBar()
     m_styleUpdatedToBaseColor = true;
 }
 
-QString TabbedEditorPlugin::getQssStringFromColor(const QColor &color)
+QString TabbedEditorPlugin::getQssStringFromColor(const QColor& color)
 {
     return QString::fromLatin1("rgba(%1, %2, %3, %4)").arg(
-                QString::number(color.red()),
-                QString::number(color.green()),
-                QString::number(color.blue()),
-                QString::number(color.alpha()));
+               QString::number(color.red()),
+               QString::number(color.green()),
+               QString::number(color.blue()),
+               QString::number(color.alpha()));
 }

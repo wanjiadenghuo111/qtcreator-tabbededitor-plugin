@@ -3,8 +3,10 @@
 
 #include <extensionsystem/iplugin.h>
 
-namespace TabbedEditor {
-namespace Internal {
+namespace TabbedEditor
+{
+namespace Internal
+{
 
 class TabBar;
 
@@ -15,18 +17,19 @@ class TabbedEditorPlugin : public ExtensionSystem::IPlugin
 public:
     TabbedEditorPlugin();
 
-    bool initialize(const QStringList &arguments, QString *errorString);
+    bool initialize(const QStringList& arguments, QString* errorString);
     void extensionsInitialized() {}
+    bool delayedInitialize() ;
 
 private slots:
-    QString getStylesheetPatternFromFile(const QString &filepath);
+    QString getStylesheetPatternFromFile(const QString& filepath);
     void updateStyleToBaseColor();
     void showTabBar();
 
 private:
-    static inline QString getQssStringFromColor(const QColor &color);
+    static inline QString getQssStringFromColor(const QColor& color);
 
-    TabBar *m_tabBar;
+    TabBar* m_tabBar;
     bool m_styleUpdatedToBaseColor;
 };
 

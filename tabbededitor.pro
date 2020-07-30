@@ -1,4 +1,5 @@
 # Qt Creator linking
+
 QTC_PLUGIN_NAME = TabbedEditor
 QTC_LIB_DEPENDS += \
     extensionsystem \
@@ -8,13 +9,19 @@ QTC_PLUGIN_DEPENDS += \
     projectexplorer \
     texteditor
 
-## set the QTC_SOURCE environment variable to override the setting here
-QTCREATOR_SOURCES = $$(QTC_SOURCE)
-isEmpty(QTCREATOR_SOURCES):error("Error. QTC_SOURCE variable must point to Qt Creator sources.")
+# Qt Creator linking
 
-## set the QTC_BUILD environment variable to override the setting here
-IDE_BUILD_TREE = $$(QTC_BUILD)
-isEmpty(IDE_BUILD_TREE):error("Error. QTC_BUILD variable must be set.")
+IDE_SOURCE_PATH = "/home/cst/qt-creator-opensource-src-4.11.1"
+
+## Either set the IDE_SOURCE_TREE when running qmake,
+## or set the QTC_SOURCE environment variable, to override the default setting
+isEmpty(IDE_SOURCE_TREE): IDE_SOURCE_TREE = $$(QTC_SOURCE)
+isEmpty(IDE_SOURCE_TREE): IDE_SOURCE_TREE = $${IDE_SOURCE_PATH}
+
+## Either set the IDE_BUILD_TREE when running qmake,
+## or set the QTC_BUILD environment variable, to override the default setting
+isEmpty(IDE_BUILD_TREE): IDE_BUILD_TREE = $$(QTC_BUILD)
+isEmpty(IDE_BUILD_TREE): IDE_BUILD_TREE = $${IDE_SOURCE_PATH}
 
 ## uncomment to build plugin into user config directory
 ## <localappdata>/plugins/<ideversion>
@@ -24,7 +31,7 @@ isEmpty(IDE_BUILD_TREE):error("Error. QTC_BUILD variable must be set.")
 ##    "~/Library/Application Support/QtProject/Qt Creator" on Mac
 # USE_USER_DESTDIR = yes
 
-include($$QTCREATOR_SOURCES/src/qtcreatorplugin.pri)
+include($${IDE_SOURCE_PATH}/src/qtcreatorplugin.pri)
 
 DEFINES += TABBEDEDITOR_LIBRARY
 
@@ -39,8 +46,16 @@ HEADERS += \
     plugin.h \
     tabbar.h
 
+HEADERS +=./include/plog/*h
+HEADERS +=./include/plog/Appenders/*
+HEADERS +=./include/plog/Converters/*
+HEADERS +=./include/plog/Appenders/*
+HEADERS +=./include/plog/Formatters/*
+
 RESOURCES += \
     resources/res.qrc
+
+INCLUDEPATH+=./include/
 
 OTHER_FILES += \
     README.md
